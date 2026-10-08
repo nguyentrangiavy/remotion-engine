@@ -1,0 +1,32 @@
+{
+  "name": "remotion-engine",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Engine Remotion tổng quát — một project, nhiều video là dữ liệu (video-spec.json).",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "create-video": "tsx scripts/create-video.ts",
+    "validate": "tsx scripts/validate-video.ts",
+    "preview": "tsx scripts/preview-video.ts",
+    "render": "tsx scripts/render-video.ts"
+  },
+  "dependencies": {
+    "@remotion/bundler": "4.0.534",
+    "@remotion/cli": "4.0.534",
+    "@remotion/google-fonts": "4.0.534",
+    "@remotion/renderer": "4.0.534",
+    "@remotion/transitions": "4.0.534",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "remotion": "4.0.534",
+    "zod": "4.6.5"
+  },
+  "devDependencies": {
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "tsx": "4.23.15",
+    "typescript": "7.0.2",
+    "vitest": "^5.0.3"
+  }
+}
