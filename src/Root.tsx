@@ -1,7 +1,25 @@
-import { Composition } from "remotion";
+import { Composition, type CalculateMetadataFunction } from "remotion";
+import { SAMPLE_SPEC } from "./sample-spec";
+import { videoSpecSchema, type VideoSpec } from "./schemas/video-spec";
+import { Video } from "./Video";
 
-const Placeholder: React.FC = () => null;
+type Props = { spec: VideoSpec };
+
+const calculateMetadata: CalculateMetadataFunction<Props> = ({ props }) => {
+  const parsed = videoSpecSchema.parse(props.spec);
+  const { width, height, fps, duration } = parsed.settings;
+  return { width, height, fps, durationInFrames: Math.round(duration * fps), props: { spec: parsed } };
+};
 
 export const RemotionRoot: React.FC = () => (
-  <Composition id="Video" component={Placeholder} durationInFrames={30} fps={30} width={1080} height={1920} />
+  <Composition
+    id="Video"
+    component={Video}
+    durationInFrames={Math.round(SAMPLE_SPEC.settings.duration * SAMPLE_SPEC.settings.fps)}
+    fps={SAMPLE_SPEC.settings.fps}
+    width={SAMPLE_SPEC.settings.width}
+    height={SAMPLE_SPEC.settings.height}
+    defaultProps={{ spec: SAMPLE_SPEC }}
+    calculateMetadata={calculateMetadata}
+  />
 );
