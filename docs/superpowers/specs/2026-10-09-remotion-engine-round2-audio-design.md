@@ -65,8 +65,8 @@ export async function resolveAudio(root: string, id: string, spec: VideoSpec): P
 Với mỗi scene có `narration`:
 1. Cache key = hash SHA-256 ngắn của `narration + audio.voice`.
 2. File đích: `videos/<id>/assets/generated/tts-<key>.mp3`. Nếu đã tồn tại → dùng lại, **không gọi TTS lại** (tiết kiệm, và để spec không đổi hành vi mỗi lần render).
-3. Nếu chưa có: gọi Edge TTS (`msedge-tts`, dùng lại đúng cách `short-video-engine` đã làm) với `narration` + `audio.voice`, lưu file.
-4. Đo thời lượng file mp3 thật bằng `music-metadata` (thư viện JS thuần, đọc metadata audio không cần ffmpeg).
+3. Nếu chưa có: gọi Edge TTS (`msedge-tts`, dùng lại đúng cách `short-video-engine` đã làm — `setMetadata(voice, OUTPUT_FORMAT.AUDIO_24KHZ_48KBITRATE_MONO_MP3, {wordBoundaryEnabled:true, sentenceBoundaryEnabled:true})` rồi `toFile(dir, text)`), lưu file mp3.
+4. **Không cần đo file riêng** — `toFile` trả kèm `metadataFilePath`, file JSON này chứa mảng `Metadata` với các item `WordBoundary`/`SentenceBoundary`, mỗi item có `Data.Offset`/`Data.Duration` theo tick .NET (100ns/tick). Lấy `max(Offset + Duration)` trong toàn bộ item rồi chia 10_000 ra số ms — đây chính là thời lượng thật của audio, đã verify bằng lệnh thật (câu tiếng Việt mẫu "Một engine, nhiều video là dữ liệu." → 3650ms, voice `vi-VN-HoaiMyNeural` xác nhận tồn tại thật, status GA).
 5. Nếu thời lượng thật > `scene.duration` khai báo trong spec gốc → set `scene.duration = ceil((thời lượng thật + 0.2) * 10) / 10` (cộng đệm 0.2s cuối câu rồi làm tròn lên bậc 0.1s — công thức cố định, không mơ hồ).
 6. Gán `narrationAudioPath` = đường dẫn file (tuyệt đối hoặc tương đối từ `publicDir`, nhất quán với cách Round 1 dùng `staticFile()`).
 
@@ -145,14 +145,12 @@ Theo đúng ranh giới đã thống nhất ở Round 1 (§9 design Round 1): lo
 
 ## 11. Dependencies mới
 
-- `msedge-tts` — TTS miễn phí qua Edge, đã dùng và xác nhận hoạt động ở `short-video-engine`.
-- `music-metadata` — đọc duration audio bằng JS thuần, không cần ffmpeg.
+- `msedge-tts` — TTS miễn phí qua Edge. Đã verify thật trong lúc viết plan: `getVoices()` xác nhận `vi-VN-HoaiMyNeural` (nữ) và `vi-VN-NamMinhNeural` (nam) tồn tại, status GA; synth thử câu tiếng Việt thành công, lấy được `durationMs` chính xác từ metadata trả về — **không cần thêm `music-metadata`** như spec bản đầu dự tính, bỏ hẳn dependency đó.
 
 Không thêm ffmpeg hay binary native nào khác — giữ đúng triết lý Round 1 (chỉ `remotion`, `zod`, Node core).
 
-## 12. Cần xác minh thật lúc viết plan (chưa chốt cứng ở spec này)
+## 12. Cần xác minh thật lúc viết plan
 
-Theo đúng mức cẩn trọng đã áp dụng với `@remotion/transitions` ở Round 1 (tải gói thật, đọc `.d.ts` thay vì đoán API) — hai điểm sau cần kiểm tra lại bằng code thật, không suy đoán, trước khi viết vào plan:
-
-- **Tên giọng Edge TTS tiếng Việt**: `"vi-VN-HoaiMyNeural"` là tên mình nhớ từ kiến thức chung, chưa gọi thử `msedge-tts` để liệt kê voice thật. Plan cần có bước gọi API liệt kê giọng của `msedge-tts`, xác nhận tên đúng, trước khi đặt làm default.
-- **Công thức `frameOffset` cho SFX**: `(tổng durationInFrames scene 0..i) - transitionDurationInFrames` là suy luận từ cách `TransitionSeries` chồng frame giữa 2 scene liên tiếp (đã verify cấu trúc `Sequence`/`Transition` ở Round 1, nhưng chưa verify công thức offset tuyệt đối này bằng cách render thử và so khớp thời điểm nghe SFX với thời điểm thấy transition). Plan cần có bước render thật 1 case có SFX rồi nghe/xem đối chiếu thời điểm trước khi coi là đúng.
+- ✅ **Tên giọng Edge TTS tiếng Việt** — verify xong (mục 11).
+- ✅ **Lấy duration từ metadata, không cần đo file riêng** — verify xong (mục 4.1), loại bỏ `music-metadata`.
+- ⏳ **Công thức `frameOffset` cho SFX**: `(tổng durationInFrames scene 0..i) - transitionDurationInFrames` là suy luận từ cách `TransitionSeries` chồng frame giữa 2 scene liên tiếp (đã verify cấu trúc `Sequence`/`Transition` ở Round 1, nhưng chưa verify công thức offset tuyệt đối này bằng cách render thử và so khớp thời điểm nghe SFX với thời điểm thấy transition). Plan cần có bước render thật 1 case có SFX rồi nghe/xem đối chiếu thời điểm trước khi coi là đúng.
