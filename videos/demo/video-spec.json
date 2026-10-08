@@ -1,0 +1,12 @@
+{
+  "version": "1.0",
+  "id": "demo",
+  "settings": { "width": 1080, "height": 1920, "fps": 30, "duration": 8 },
+  "style": {},
+  "audio": {},
+  "scenes": [
+    { "id": "hook", "type": "text", "duration": 3, "text": { "type": "hero", "content": "remotion-engine" }, "animation": { "type": "reveal" } },
+    { "id": "img", "type": "image", "duration": 3, "src": "assets/scene-01.png", "animation": { "type": "kenBurns" }, "transition": { "type": "slide" } },
+    { "id": "quote", "type": "quote", "duration": 2, "quote": "Một engine, nhiều video.", "transition": { "type": "fade" } }
+  ]
+}
