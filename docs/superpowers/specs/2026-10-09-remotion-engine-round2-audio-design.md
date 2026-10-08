@@ -68,7 +68,7 @@ Với mỗi scene có `narration`:
 3. Nếu chưa có: gọi Edge TTS (`msedge-tts`, dùng lại đúng cách `short-video-engine` đã làm — `setMetadata(voice, OUTPUT_FORMAT.AUDIO_24KHZ_48KBITRATE_MONO_MP3, {wordBoundaryEnabled:true, sentenceBoundaryEnabled:true})` rồi `toFile(dir, text)`), lưu file mp3.
 4. **Không cần đo file riêng** — `toFile` trả kèm `metadataFilePath`, file JSON này chứa mảng `Metadata` với các item `WordBoundary`/`SentenceBoundary`, mỗi item có `Data.Offset`/`Data.Duration` theo tick .NET (100ns/tick). Lấy `max(Offset + Duration)` trong toàn bộ item rồi chia 10_000 ra số ms — đây chính là thời lượng thật của audio, đã verify bằng lệnh thật (câu tiếng Việt mẫu "Một engine, nhiều video là dữ liệu." → 3650ms, voice `vi-VN-HoaiMyNeural` xác nhận tồn tại thật, status GA).
 5. Nếu thời lượng thật > `scene.duration` khai báo trong spec gốc → set `scene.duration = ceil((thời lượng thật + 0.2) * 10) / 10` (cộng đệm 0.2s cuối câu rồi làm tròn lên bậc 0.1s — công thức cố định, không mơ hồ).
-6. Gán `narrationAudioPath` = đường dẫn file (tuyệt đối hoặc tương đối từ `publicDir`, nhất quán với cách Round 1 dùng `staticFile()`).
+6. Gán `narrationAudioPath` = đường dẫn **tương đối từ `videos/<id>/`** (vd. `"assets/generated/tts-ab12cd.mp3"`) — cùng quy ước với `scene.src`/`audio.music` hiện có, để `Video.tsx` gọi `staticFile(scene.narrationAudioPath)` giống mọi field đường dẫn khác, không cần nhánh xử lý riêng.
 
 Sau khi xử lý hết các scene, nếu có scene nào bị đổi `duration`, tính lại `settings.duration = sum(scene.duration)` để khớp — logic giống `validate-video.ts` đang kiểm tra, chỉ khác là bây giờ chính `resolveAudio` là nơi làm cho nó khớp, không chỉ kiểm tra.
 
@@ -125,9 +125,13 @@ Mọi track fade-in/fade-out 0.3s ở đầu/cuối để tránh tiếng click k
 
 ## 8. Tích hợp CLI
 
-`validate-video.ts`, `preview-video.ts`, `render-video.ts` đều gọi `resolveAudio(root, id, spec)` ngay sau khi `videoSpecSchema.parse` — trước khi dùng spec cho bất kỳ việc gì khác. `validate` dùng kết quả để báo tổng thời lượng **sau khi** đã tính narration (có thể khác số trong file spec gốc — in rõ nếu có chênh lệch, vd. `"[validate] demo: OK — settings.duration gốc 8s, sau khi tính narration thực tế: 9.4s"`). `Root.tsx`/`calculateMetadata` không đổi — nó luôn nhận spec đã resolve từ `render`/`preview`, không tự gọi `resolveAudio`.
+`validate-video.ts`, `preview-video.ts`, `render-video.ts` đều gọi `resolveAudio(root, id, spec)` ngay sau khi `videoSpecSchema.parse` — trước khi dùng spec cho bất kỳ việc gì khác. `validate` dùng kết quả để báo tổng thời lượng **sau khi** đã tính narration (có thể khác số trong file spec gốc — in rõ nếu có chênh lệch, vd. `"[validate] demo: OK — settings.duration gốc 8s, sau khi tính narration thực tế: 9.4s"`).
+
+**Sửa quan trọng ở `Root.tsx`**: `calculateMetadata` ở Round 1 gọi `videoSpecSchema.parse(props.spec)` để tính frame — nhưng nếu giữ nguyên, nó sẽ **âm thầm xoá** `narrationAudioPath` (trên từng scene) và `sfxPaths` (trong `audio`), vì đây là field chỉ tồn tại sau `resolveAudio`, không khai báo trong `videoSpecSchema` gốc, và zod mặc định strip field lạ khi parse qua object schema. Round 2 đổi `Props` của `calculateMetadata` thành `{ spec: ResolvedVideoSpec }` và **bỏ hẳn lệnh `.parse()`** trong đó — chỉ đọc trực tiếp `props.spec.settings` để tính `durationInFrames`, tin tưởng props đầu vào đã hợp lệ (vì `render`/`preview` đã validate + resolve trước khi truyền vào). An toàn kiểu vẫn giữ được qua TypeScript (`ResolvedVideoSpec`), không cần zod ở bước này nữa.
 
 ## 9. `Video.tsx` — lắp audio vào timeline
+
+Prop type đổi từ `spec: VideoSpec` sang `spec: ResolvedVideoSpec` — mọi nơi dùng `spec.scenes[i]`/`spec.audio` bên trong đã là dữ liệu đã resolve (audio path thật, duration đã chỉnh), không phải spec gốc người dùng viết tay.
 
 - **Narration**: mỗi scene có `narrationAudioPath` → thêm `<Audio src={staticFile(...)} />` làm sibling của `<SceneRenderer>` bên trong đúng `TransitionSeries.Sequence` của scene đó (tự động đồng bộ thời điểm nhờ nằm trong cùng Sequence).
 - **Nhạc nền**: như Round 1, một `<Audio>` toàn video, không đổi.
