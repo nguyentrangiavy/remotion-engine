@@ -1,5 +1,6 @@
 import fs from "node:fs/promises";
 import { findMissingAssets, specPath } from "../src/engine/AssetResolver";
+import { resolveAudio } from "../src/engine/AudioResolver";
 import { videoSpecSchema } from "../src/schemas/video-spec";
 
 async function main() {
@@ -44,7 +45,18 @@ async function main() {
     process.exit(1);
   }
 
-  console.log(`[validate] ${id}: OK — ${spec.scenes.length} scene(s), ${totalSceneSeconds}s, mọi asset đều có.`);
+  console.log(`[validate] Đang sinh/kiểm tra audio (TTS/nhạc nền/SFX)...`);
+  const resolved = await resolveAudio(root, id, spec);
+
+  if (Math.abs(resolved.settings.duration - spec.settings.duration) > 0.01) {
+    console.log(
+      `[validate] Lưu ý: settings.duration gốc ${spec.settings.duration}s, sau khi tính narration thực tế: ${resolved.settings.duration}s (một số scene bị lời đọc kéo dài hơn khai báo).`,
+    );
+  }
+
+  console.log(
+    `[validate] ${id}: OK — ${resolved.scenes.length} scene(s), ${resolved.settings.duration}s, mọi asset đều có.`,
+  );
 }
 
 main().catch((err) => {
