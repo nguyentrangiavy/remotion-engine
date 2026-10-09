@@ -3,6 +3,7 @@ import os from "node:os";
 import path from "node:path";
 import { spawn } from "node:child_process";
 import { specPath } from "../src/engine/AssetResolver";
+import { resolveAudio } from "../src/engine/AudioResolver";
 import { videoSpecSchema } from "../src/schemas/video-spec";
 
 async function main() {
@@ -15,8 +16,11 @@ async function main() {
   const raw = JSON.parse(await fs.readFile(specPath(root, id), "utf8"));
   const spec = videoSpecSchema.parse(raw); // ném lỗi rõ ràng nếu spec sai — chạy `npm run validate <id>` trước nếu cần chi tiết hơn
 
+  console.log(`[preview] Đang sinh/kiểm tra audio (TTS/nhạc nền/SFX)...`);
+  const resolved = await resolveAudio(root, id, spec);
+
   const propsFile = path.join(await fs.mkdtemp(path.join(os.tmpdir(), "remotion-engine-preview-")), "props.json");
-  await fs.writeFile(propsFile, JSON.stringify({ spec }));
+  await fs.writeFile(propsFile, JSON.stringify({ spec: resolved }));
 
   console.log(`[preview] Mở Remotion Studio cho videos/${id}/ (publicDir = videos/${id}/)...`);
   const child = spawn(
