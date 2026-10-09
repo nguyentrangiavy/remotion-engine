@@ -75,4 +75,39 @@ describe("videoSpecSchema", () => {
     const invalid = { ...base, scenes: [{ id: "s1", type: "grid", duration: 5, items: [{ src: "a.png" }] }] };
     expect(() => videoSpecSchema.parse(invalid)).toThrow();
   });
+
+  it("accepts a scene with narration independent of displayed text", () => {
+    const spec = { ...base, scenes: [{ ...base.scenes[0], narration: "Lời đọc khác với chữ hiển thị." }] };
+    const result = videoSpecSchema.parse(spec);
+    expect(result.scenes[0]).toMatchObject({ narration: "Lời đọc khác với chữ hiển thị." });
+  });
+
+  it("defaults audio.voice and audio.sfx when audio is omitted entirely", () => {
+    const result = videoSpecSchema.parse(base);
+    expect(result.audio.voice).toBe("vi-VN-HoaiMyNeural");
+    expect(result.audio.sfx).toBe(true);
+  });
+
+  it("accepts audio.music as a plain file path (Round 1 behavior unchanged)", () => {
+    const spec = { ...base, audio: { music: "assets/music.mp3" } };
+    const result = videoSpecSchema.parse(spec);
+    expect(result.audio.music).toBe("assets/music.mp3");
+  });
+
+  it("accepts audio.music as a generate directive with a mood", () => {
+    const spec = { ...base, audio: { music: { generate: true, mood: "ambient" } } };
+    const result = videoSpecSchema.parse(spec);
+    expect(result.audio.music).toEqual({ generate: true, mood: "ambient" });
+  });
+
+  it("rejects audio.music.generate with an unknown mood", () => {
+    const spec = { ...base, audio: { music: { generate: true, mood: "epic" } } };
+    expect(() => videoSpecSchema.parse(spec)).toThrow();
+  });
+
+  it("allows turning off auto-SFX via audio.sfx: false", () => {
+    const spec = { ...base, audio: { sfx: false } };
+    const result = videoSpecSchema.parse(spec);
+    expect(result.audio.sfx).toBe(false);
+  });
 });

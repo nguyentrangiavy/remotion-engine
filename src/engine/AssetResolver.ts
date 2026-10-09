@@ -22,7 +22,7 @@ export function outputPath(root: string, id: string): string {
 export function collectAssetPaths(spec: VideoSpec): string[] {
   const paths: string[] = [];
   if (spec.audio.voiceOver) paths.push(spec.audio.voiceOver);
-  if (spec.audio.music) paths.push(spec.audio.music);
+  if (typeof spec.audio.music === "string") paths.push(spec.audio.music); // {generate:true,...} tự sinh, không phải asset cần kiểm tra tồn tại
 
   for (const scene of spec.scenes) {
     if (scene.type === "image" || scene.type === "video" || scene.type === "deviceFrame") {

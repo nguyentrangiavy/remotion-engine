@@ -15,10 +15,17 @@ const styleSchema = z.object({
   backgroundColor: z.string().default("#050505"),
 });
 
+const musicGenerateSchema = z.object({
+  generate: z.literal(true),
+  mood: z.enum(["ambient", "upbeat", "tense", "calm"]),
+});
+
 const audioSchema = z.object({
   voiceOver: z.string().optional(),
-  music: z.string().optional(),
+  voice: z.string().default("vi-VN-HoaiMyNeural"),
+  music: z.union([z.string(), musicGenerateSchema]).optional(),
   musicVolume: z.number().min(0).max(1).default(0.15),
+  sfx: z.boolean().default(true),
 });
 
 export const layoutSchema = z.object({
@@ -51,6 +58,7 @@ const textContentSchema = z.object({
 const sceneBaseSchema = z.object({
   id: z.string(),
   duration: z.number().positive(),
+  narration: z.string().optional(),
   layout: layoutSchema.optional(),
   animation: animationSchema.optional(),
   transition: transitionSchema.optional(),

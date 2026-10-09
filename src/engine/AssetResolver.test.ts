@@ -10,7 +10,7 @@ const spec: VideoSpec = {
   id: "demo",
   settings: { width: 1080, height: 1920, fps: 30, duration: 10 },
   style: { theme: "minimal", font: "Inter", primaryColor: "#fff", accentColor: "#7C5CFF", backgroundColor: "#000" },
-  audio: { voiceOver: "assets/voice.mp3", music: "assets/music.mp3", musicVolume: 0.15 },
+  audio: { voiceOver: "assets/voice.mp3", voice: "vi-VN-HoaiMyNeural", music: "assets/music.mp3", musicVolume: 0.15, sfx: true },
   scenes: [
     { id: "s1", type: "image", duration: 5, src: "assets/a.png" },
     {

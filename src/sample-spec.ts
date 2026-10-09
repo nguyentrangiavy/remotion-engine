@@ -5,7 +5,7 @@ export const SAMPLE_SPEC: VideoSpec = {
   id: "sample",
   settings: { width: 1080, height: 1920, fps: 30, duration: 6 },
   style: { theme: "minimal", font: "Inter", primaryColor: "#FFFFFF", accentColor: "#7C5CFF", backgroundColor: "#050505" },
-  audio: { musicVolume: 0.15 },
+  audio: { musicVolume: 0.15, voice: "vi-VN-HoaiMyNeural", sfx: true },
   scenes: [
     {
       id: "hook",
