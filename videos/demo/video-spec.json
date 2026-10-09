@@ -1,12 +1,80 @@
 {
   "version": "1.0",
   "id": "demo",
-  "settings": { "width": 1080, "height": 1920, "fps": 30, "duration": 8 },
+  "settings": { "width": 1080, "height": 1920, "fps": 30, "duration": 22 },
   "style": {},
   "audio": {},
   "scenes": [
-    { "id": "hook", "type": "text", "duration": 3, "text": { "type": "hero", "content": "remotion-engine" }, "animation": { "type": "reveal" } },
-    { "id": "img", "type": "image", "duration": 3, "src": "assets/scene-01.png", "animation": { "type": "kenBurns" }, "transition": { "type": "slide" } },
-    { "id": "quote", "type": "quote", "duration": 2, "quote": "Một engine, nhiều video.", "transition": { "type": "fade" } }
+    {
+      "id": "hook",
+      "type": "text",
+      "duration": 2.5,
+      "text": { "type": "hero", "content": "remotion-engine" },
+      "animation": { "type": "reveal" }
+    },
+    {
+      "id": "tagline",
+      "type": "text",
+      "duration": 2.5,
+      "text": { "type": "subtitle", "content": "Video là dữ liệu — viết JSON, không viết code" },
+      "animation": { "type": "fade" },
+      "transition": { "type": "slide", "duration": 0.4 }
+    },
+    {
+      "id": "code-demo",
+      "type": "code",
+      "duration": 3.5,
+      "code": "{\n  \"type\": \"image\",\n  \"src\": \"assets/photo.png\",\n  \"animation\": { \"type\": \"kenBurns\" }\n}",
+      "language": "json",
+      "animation": { "type": "typewriter" },
+      "transition": { "type": "fade", "duration": 0.4 }
+    },
+    {
+      "id": "screenshot",
+      "type": "deviceFrame",
+      "duration": 3,
+      "frame": "browser",
+      "src": "assets/scene-04.png",
+      "animation": { "type": "kenBurns" },
+      "transition": { "type": "wipe", "duration": 0.4 }
+    },
+    {
+      "id": "compare",
+      "type": "split",
+      "duration": 3,
+      "layout": { "type": "split-screen", "direction": "horizontal" },
+      "left": { "kind": "text", "content": "Trước: dựng tay" },
+      "right": { "kind": "image", "src": "assets/scene-05.png" },
+      "transition": { "type": "slide", "duration": 0.4 }
+    },
+    {
+      "id": "collage",
+      "type": "grid",
+      "duration": 2.5,
+      "layout": { "type": "grid", "columns": 2 },
+      "items": [
+        { "src": "assets/grid-1.png" },
+        { "src": "assets/grid-2.png" },
+        { "src": "assets/grid-3.png" },
+        { "src": "assets/grid-4.png" }
+      ],
+      "animation": { "type": "fade" },
+      "transition": { "type": "fade", "duration": 0.4 }
+    },
+    {
+      "id": "quote",
+      "type": "quote",
+      "duration": 2.5,
+      "quote": "53 kịch bản, 8 khối hình, vô hạn video.",
+      "transition": { "type": "fade", "duration": 0.4 }
+    },
+    {
+      "id": "cta",
+      "type": "text",
+      "duration": 2.5,
+      "text": { "type": "hero", "content": "npm run create-video" },
+      "animation": { "type": "bounce" },
+      "transition": { "type": "fade", "duration": 0.4 }
+    }
   ]
 }
